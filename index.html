@@ -1289,8 +1289,9 @@ html,body{width:100%;height:100%;margin:0;overflow:hidden}
   <div class="wrap" id="app"></div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.17.1/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.17.1/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.17.1/firebase-auth-compat.min.js"></script>
 <!-- Dados dos personagens: gerado por build_characters.py a partir de
      characters.py. Precisa carregar ANTES do script principal, porque ele
      declara RAW/CHAR_KIT/APPEARANCE/CLASS_TYPE/FOURTH_ATTACK/CHAR_FORMS/
@@ -2008,11 +2009,14 @@ function charById(id){
    Tudo em try/catch porque navegação privada e alguns navegadores embutidos
    bloqueiam o armazenamento: se falhar, o jogo continua pedindo o nome a cada
    vez em vez de quebrar. */
-const SESSION_KEY = "animeverse_session_v2";
+const SESSION_KEY = "animeverse_session_v3";
 const LEGACY_NAME_KEY = "arena_nome";
-// O sistema antigo identificava o jogador apenas pelo nome. Invalide esse
-// estado legado para impedir login automático sem senha.
+// O login agora é responsabilidade do Firebase Authentication. O localStorage
+// guarda apenas o nome para a interface; a identidade real vem de auth.currentUser.
 try{ localStorage.removeItem(LEGACY_NAME_KEY); }catch(e){}
+let firebaseAuthReady = false;
+let currentAuthUser = null;
+
 function savedName(){
   try{ return localStorage.getItem(SESSION_KEY) || ""; }catch(e){ return ""; }
 }
@@ -2028,46 +2032,110 @@ function forgetName(){
   render();
 }
 
-/* ============ CONTA (nome + senha) ============
-   O primeiro acesso exige autenticação. Depois do login, a sessão fica salva
-   neste aparelho até o usuário escolher "Sair da conta" em Configurações. */
+/* ============ CONTA — Firebase Authentication ============ */
 let appStage = "start";
 let accError=""; let authMode="login";
-function goJogar(){ appStage=savedName()?'menu':'login'; authMode='login'; render(); }
+function goJogar(){
+  appStage = (firebaseAuthReady && currentAuthUser) ? 'menu' : 'login';
+  authMode='login';
+  render();
+}
 function goMenu(){appStage='menu';render()}
 function goHistoria(){appStage='historia';render()}
 function goAmigos(){appStage='amigos';render()}
 function goConfiguracoes(){appStage='config';render()}
-function logout(){ forgetName(); }
+async function logout(){
+  try { await firebase.auth().signOut(); }
+  catch(e){ console.error('Erro ao sair:', e); }
+}
 function accountKey(nome){return nome.trim().toLowerCase()}
-async function hashPassword(password){ const data=new TextEncoder().encode(password); const hash=await crypto.subtle.digest('SHA-256',data); return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+function authEmail(nome){ return `${accountKey(nome)}@animeverse.app`; }
+
 async function confirmAccount(){
   const nameEl=document.getElementById('accName'), passEl=document.getElementById('accPass'), pass2El=document.getElementById('accPass2');
   const raw=(nameEl?.value||'').trim(), pass=passEl?.value||'', pass2=pass2El?.value||'';
   if(!raw||!pass){accError='Preencha nome e senha.';renderLogin();return}
-  const key=accountKey(raw); if(!/^[a-z0-9_]{3,18}$/.test(key)){accError='Use de 3 a 18 letras, números ou _.';renderLogin();return}
-  if(pass.length<4){accError='A senha deve ter pelo menos 4 caracteres.';renderLogin();return}
+  const key=accountKey(raw);
+  if(!/^[a-z0-9_]{3,18}$/.test(key)){accError='Use de 3 a 18 letras, números ou _.';renderLogin();return}
+  if(pass.length<6){accError='A senha deve ter pelo menos 6 caracteres.';renderLogin();return}
   if(authMode==='register' && pass!==pass2){accError='As senhas não coincidem.';renderLogin();return}
-  try{ const ref=db.collection('players').doc(key), doc=await ref.get(), hash=await hashPassword(pass);
-    if(authMode==='register'){
-      if(doc.exists){accError='Essa conta já existe. Entre nela.';renderLogin();return}
-      await ref.set({username:raw,passwordHash:hash,createdAt:Date.now(),friends:[]}); saveName(raw);
+  if(!firebaseAuthReady){accError='O sistema de autenticação ainda está carregando. Tente novamente.';renderLogin();return}
+
+  try {
+    const email = authEmail(raw);
+    let credential;
+    if(authMode==='register') {
+      credential = await firebase.auth().createUserWithEmailAndPassword(email, pass);
+      const uid = credential.user.uid;
+      await db.collection('players').doc(uid).set({
+        username: raw,
+        usernameKey: key,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        friends: []
+      });
+      // Índice público mínimo para permitir procurar amigos por nome sem expor
+      // o documento privado do jogador.
+      await db.collection('usernames').doc(key).set({username: raw, uid});
+      saveName(raw);
     } else {
-      if(!doc.exists){accError='Conta não encontrada. Crie uma conta primeiro.';renderLogin();return}
-      if(doc.data().passwordHash && doc.data().passwordHash!==hash){accError='Senha incorreta.';renderLogin();return}
-      if(!doc.data().passwordHash){await ref.set({passwordHash:hash},{merge:true})}
-      saveName(doc.data().username||raw);
+      credential = await firebase.auth().signInWithEmailAndPassword(email, pass);
+      const uid = credential.user.uid;
+      const ref = db.collection('players').doc(uid);
+      const doc = await ref.get();
+      if(!doc.exists){
+        await ref.set({username: raw, usernameKey: key, friends: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      }
+      saveName(doc.exists ? (doc.data().username || raw) : raw);
     }
-    accError='';appStage='menu';render();
-  }catch(e){console.error(e);accError='Não foi possível conectar agora.';renderLogin()}
+    currentAuthUser = credential.user;
+    accError=''; appStage='menu'; render();
+  } catch(e) {
+    console.error('Firebase Auth error:', e);
+    const code=e?.code||'';
+    const messages={
+      'auth/email-already-in-use':'Esse nome de usuário já está cadastrado. Entre na conta.',
+      'auth/invalid-credential':'Nome ou senha incorretos.',
+      'auth/user-not-found':'Conta não encontrada. Crie uma conta primeiro.',
+      'auth/wrong-password':'Nome ou senha incorretos.',
+      'auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.',
+      'auth/invalid-email':'Nome de usuário inválido.',
+      'auth/network-request-failed':'Falha de conexão com o Firebase. Verifique sua internet e tente novamente.',
+      'permission-denied':'O Firestore recusou o acesso à conta. Confira as Rules.'
+    };
+    accError=messages[code] || `Erro de autenticação (${code||'desconhecido'}). Veja o console para detalhes.`;
+    renderLogin();
+  }
 }
 function setAuthMode(mode){authMode=mode;accError='';renderLogin()}
 
+// Mantém a sessão do Firebase após recarregar a página e sincroniza o nome da conta.
+try {
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
+  firebase.auth().onAuthStateChanged(async user=>{
+    currentAuthUser = user;
+    firebaseAuthReady = true;
+    if(user){
+      try{
+        const doc=await db.collection('players').doc(user.uid).get();
+        if(doc.exists && doc.data().username) saveName(doc.data().username);
+      }catch(e){ console.warn('Não foi possível carregar o perfil:', e); }
+    } else {
+      try{ localStorage.removeItem(SESSION_KEY); }catch(e){}
+      if(ROOM_CODE){ ROOM_CODE=null; MY_SLOT=null; }
+    }
+    if(appStage!=='start' || !user) render();
+  });
+} catch(e) {
+  console.error('Firebase Authentication não inicializou:',e);
+  firebaseAuthReady=false;
+}
+
 /* ---------- amigos ---------- */
 async function myPlayerDoc(){
+  const user = firebase.auth().currentUser;
   const nome = savedName();
-  if(!nome) return null;
-  const ref = db.collection("players").doc(accountKey(nome));
+  if(!user) return null;
+  const ref = db.collection("players").doc(user.uid);
   const doc = await ref.get();
   return {ref, data: doc.exists ? doc.data() : {username:nome, friends:[]}};
 }
@@ -2080,19 +2148,22 @@ async function addFriend(){
   const meKey = accountKey(savedName());
   if(key === meKey){ accError = "Esse é você :)"; renderHome(); return; }
   try{
-    const friendDoc = await db.collection("players").doc(key).get();
-    if(!friendDoc.exists){ accError = "Não achei ninguém com esse nome."; renderHome(); return; }
+    // usernameKey -> UID é público; o perfil completo continua protegido.
+    const friendIndex = await db.collection("usernames").doc(key).get();
+    if(!friendIndex.exists){ accError = "Não achei ninguém com esse nome."; renderHome(); return; }
+    const friendInfo = friendIndex.data();
     const {ref, data} = await myPlayerDoc();
+    if(!ref) return;
     const friends = data.friends || [];
-    if(friends.some(f=>f.key===key)){ accError = "Vocês já são amigos."; renderHome(); return; }
-    friends.push({key, username: friendDoc.data().username});
-    await ref.set({...data, friends}, {merge:true});
+    if(friends.some(f=>f.uid===friendInfo.uid)){ accError = "Vocês já são amigos."; renderHome(); return; }
+    friends.push({uid:friendInfo.uid, username:friendInfo.username});
+    await ref.set({friends}, {merge:true});
     FRIENDS_CACHE = friends;
     accError = "";
     renderHome();
   }catch(e){
     console.error("Erro ao adicionar amigo:", e);
-    accError = "Não deu pra adicionar agora. Tenta de novo.";
+    accError = e?.code==='permission-denied' ? "O Firebase recusou o acesso. Confira as Rules de players/usernames." : "Não deu pra adicionar agora. Tenta de novo.";
     renderHome();
   }
 }
@@ -2143,7 +2214,7 @@ function render(){
   if(showingIndex){ renderCharIndex(); return; }
   if(ROOM_CODE){ /* dentro de uma partida -- appStage não importa mais */ }
   else if(appStage==="start"){ renderStart(); return; }
-  else if(!savedName()){ renderLogin(); return; }
+  else if(!firebaseAuthReady || !currentAuthUser){ renderLogin(); return; }
   else if(appStage==="historia"){ renderHistoria(); return; }
   else if(appStage==="amigos"){ renderHome(); return; }
   else if(appStage==="config"){ renderConfig(); return; }
