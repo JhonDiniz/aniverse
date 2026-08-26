@@ -2100,7 +2100,9 @@ async function confirmAccount(){
       'auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.',
       'auth/invalid-email':'Nome de usuário inválido.',
       'auth/network-request-failed':'Falha de conexão com o Firebase. Verifique sua internet e tente novamente.',
-      'permission-denied':'O Firestore recusou o acesso à conta. Confira as Rules.'
+      'auth/operation-not-allowed':'O login por email/senha ainda não está ativado no Firebase. Vá em Authentication → Sign-in method → Email/Password e ative.',
+      'auth/too-many-requests':'Muitas tentativas seguidas. Espere um pouco e tente de novo.',
+      'permission-denied':'O Firestore recusou o acesso à conta. Confira se as Rules foram publicadas no Console.'
     };
     accError=messages[code] || `Erro de autenticação (${code||'desconhecido'}). Veja o console para detalhes.`;
     renderLogin();
@@ -2147,6 +2149,7 @@ async function addFriend(){
   const key = accountKey(raw);
   const meKey = accountKey(savedName());
   if(key === meKey){ accError = "Esse é você :)"; renderHome(); return; }
+  if(!firebase.auth().currentUser){ accError = "Sua sessão caiu. Saia e entre de novo."; renderHome(); return; }
   try{
     // usernameKey -> UID é público; o perfil completo continua protegido.
     const friendIndex = await db.collection("usernames").doc(key).get();
