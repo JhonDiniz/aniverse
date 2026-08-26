@@ -449,7 +449,7 @@
      de que lado (jogador ou inimigo) aplicar .mirror-x pra fechar a
      convenção "time do jogador olha pra direita, inimigo olha pra
      esquerda" -- sem precisar de uma segunda arte desenhada ao contrário. */
-  .sprite-direction{display:block; transform-origin:50% 100%;}
+  .sprite-direction{display:block; width:100%; transform-origin:50% 100%;}
   .sprite-direction.mirror-x{transform:scaleX(-1);}
   /* O espelhamento fica no wrapper e a animação no sprite interno. Assim
      scaleX(-1) nunca é sobrescrito pelo transform das animações de idle/ataque. */
@@ -1900,6 +1900,7 @@ const RANK_ORDER  = ["D","C","B","A","S","Z"]; // crescente
 // Ataques podem ter um `cost` (0-5): só usáveis com carga >= cost, e o uso
 // debita esse valor da carga. cost=0 é sempre utilizável.
 const CHARGE_MAX = 5;
+const SUPPORT_MAX = 5;  // carga máxima do suporte (mesma escala do CHARGE_MAX) -- estava faltando, causava ReferenceError ao renderizar a batalha
 const CHARGE_STEP = 0.75;
 function addCharge(state, id, amount){
   const b = state.battle;
