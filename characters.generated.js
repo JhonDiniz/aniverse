@@ -1,10 +1,11 @@
-// ARQUIVO GERADO AUTOMATICAMENTE por build_characters.py -- não edite na mão.
-// Fonte: characters.py. Pra mudar personagens, edite lá e rode o script de novo.
+// ARQUIVO GERADO AUTOMATICAMENTE pelo Editor de Personagens -- não edite na mão.
+// Fonte: characters.py. Pra mudar personagens, use o editor e exporte de novo.
 
 const ANIMES = [
   "Dragon Ball",
   "One Piece",
-  "Naruto"
+  "Naruto",
+  "Seven Deadly Sins"
 ];
 const RAW = {
   "Dragon Ball": [
@@ -73,7 +74,14 @@ const RAW = {
   ],
   "Naruto": [
     [
-      "Naruto Shippuden B",
+      "Naruto Shippuden",
+      "strong",
+      "hybrid"
+    ]
+  ],
+  "Seven Deadly Sins": [
+    [
+      "Escanor",
       "strong",
       "hybrid"
     ]
@@ -93,8 +101,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 50,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -106,8 +126,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 110,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 95,
         "cost": 0,
@@ -157,8 +189,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 52,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -170,8 +214,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 115,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 93,
         "cost": 0,
@@ -221,8 +277,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 45,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -261,8 +329,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 100,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 95,
         "cost": 0,
@@ -283,8 +363,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 58,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -296,8 +388,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 120,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 88,
         "cost": 0,
@@ -347,8 +451,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 60,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 97,
         "cost": 0,
@@ -360,8 +476,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 125,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 90,
         "cost": 0,
@@ -409,8 +537,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 56,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -422,8 +562,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 125,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 92,
         "cost": 0,
@@ -471,8 +623,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 52,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -484,8 +648,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 110,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 95,
         "cost": 0,
@@ -535,8 +711,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 54,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -548,8 +736,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 115,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 93,
         "cost": 0,
@@ -599,8 +799,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 48,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -675,8 +887,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 35,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -713,8 +937,20 @@ const CHAR_KIT = [
         "category": "special",
         "power": 70,
         "cooldown": 2,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -735,8 +971,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 58,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -811,8 +1059,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 50,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 100,
         "cost": 0,
@@ -939,8 +1199,20 @@ const CHAR_KIT = [
         "category": "melee",
         "power": 70,
         "cooldown": 0,
-        "effect": null,
-        "effects": [],
+        "effect": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
+        "effects": [
+          {
+            "kind": "heal",
+            "target": "self",
+            "flat": 25
+          }
+        ],
         "onceOnly": false,
         "precision": 75,
         "cost": 3,
@@ -948,9 +1220,106 @@ const CHAR_KIT = [
         "ignoreFrontline": true
       }
     ]
+  },
+  {
+    "vida": 210,
+    "atk": 150,
+    "defFis": 110,
+    "defMag": 110,
+    "vel": 70,
+    "attacks": [
+      {
+        "name": "Super Corte",
+        "dmgType": "physical",
+        "category": "melee",
+        "power": 30,
+        "cooldown": 0,
+        "effect": [
+          {
+            "kind": "dot",
+            "target": "enemy",
+            "flat": 10,
+            "turns": 3
+          }
+        ],
+        "effects": [
+          {
+            "kind": "dot",
+            "target": "enemy",
+            "flat": 10,
+            "turns": 3
+          }
+        ],
+        "onceOnly": false,
+        "precision": 95,
+        "cost": 0,
+        "targetType": "single",
+        "description": ""
+      },
+      {
+        "name": "Machado Divino Rhitta",
+        "dmgType": "physical",
+        "category": "melee",
+        "power": 70,
+        "cooldown": 0,
+        "effect": [
+          {
+            "kind": "dot",
+            "target": "enemy",
+            "flat": 10,
+            "turns": 3
+          }
+        ],
+        "effects": [
+          {
+            "kind": "dot",
+            "target": "enemy",
+            "flat": 10,
+            "turns": 3
+          }
+        ],
+        "onceOnly": false,
+        "precision": 90,
+        "cost": 1,
+        "targetType": "single",
+        "description": ""
+      },
+      {
+        "name": "Sol Cruel",
+        "dmgType": "magic",
+        "category": "melee",
+        "power": 100,
+        "cooldown": 0,
+        "effect": [
+          {
+            "kind": "dot",
+            "target": "enemy",
+            "flat": 10,
+            "turns": 3
+          }
+        ],
+        "effects": [
+          {
+            "kind": "dot",
+            "target": "enemy",
+            "flat": 10,
+            "turns": 3
+          }
+        ],
+        "onceOnly": false,
+        "precision": 80,
+        "cost": 3,
+        "targetType": "mixed",
+        "frontlineCount": 1,
+        "backlineCount": 1,
+        "description": "",
+        "ignoreFrontline": true
+      }
+    ]
   }
 ];
 const APPEARANCE = [
+  null,
   null,
   null,
   null,
@@ -1015,8 +1384,12 @@ const CLASS_TYPE = [
     "Sombrio"
   ],
   [
-    "Guerreiro",
+    "Lutador",
     "Vento"
+  ],
+  [
+    "Guerreiro",
+    "Fogo"
   ]
 ];
 const FOURTH_ATTACK = [
@@ -1026,8 +1399,20 @@ const FOURTH_ATTACK = [
     "category": "special",
     "power": 135,
     "cooldown": 4,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 80,
     "cost": 0,
@@ -1039,8 +1424,20 @@ const FOURTH_ATTACK = [
     "category": "special",
     "power": 140,
     "cooldown": 4,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 82,
     "cost": 0,
@@ -1106,8 +1503,20 @@ const FOURTH_ATTACK = [
     "category": "special",
     "power": 140,
     "cooldown": 4,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 85,
     "cost": 0,
@@ -1119,8 +1528,20 @@ const FOURTH_ATTACK = [
     "category": "special",
     "power": 145,
     "cooldown": 4,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 83,
     "cost": 0,
@@ -1132,8 +1553,20 @@ const FOURTH_ATTACK = [
     "category": "special",
     "power": 135,
     "cooldown": 4,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 85,
     "cost": 0,
@@ -1145,8 +1578,20 @@ const FOURTH_ATTACK = [
     "category": "special",
     "power": 140,
     "cooldown": 4,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 82,
     "cost": 0,
@@ -1264,13 +1709,52 @@ const FOURTH_ATTACK = [
     "category": "melee",
     "power": 0,
     "cooldown": 0,
-    "effect": null,
-    "effects": [],
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 25
+      }
+    ],
     "onceOnly": false,
     "precision": 100,
     "cost": 5,
     "targetType": "single",
     "transformsInto": "manto_4_caudas"
+  },
+  {
+    "name": "The One",
+    "dmgType": "physical",
+    "category": "special",
+    "power": 100,
+    "cooldown": 4,
+    "effect": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 30
+      }
+    ],
+    "effects": [
+      {
+        "kind": "heal",
+        "target": "self",
+        "flat": 30
+      }
+    ],
+    "onceOnly": false,
+    "precision": 100,
+    "cost": 0,
+    "targetType": "single",
+    "transformsInto": "transform_15",
+    "description": ""
   }
 ];
 const RANK_OVERRIDE = {
@@ -1286,13 +1770,14 @@ const RANK_OVERRIDE = {
   "Tony Tony Chopper": "S",
   "Barba Branca": "S",
   "Barba Negra": "S",
-  "Naruto Shippuden B": "B"
+  "Naruto Shippuden": "B",
+  "Escanor": "S"
 };
 const CHAR_FORMS = {
-  "Naruto Shippuden B": {
+  "Naruto Shippuden": {
     "manto_4_caudas": {
       "key": "manto_4_caudas",
-      "name": "Manto 4 Caudas A",
+      "name": "Manto 4 Caudas",
       "vida": 170,
       "atk": 150,
       "defFis": 90,
@@ -1305,8 +1790,20 @@ const CHAR_FORMS = {
           "category": "melee",
           "power": 45,
           "cooldown": 0,
-          "effect": null,
-          "effects": [],
+          "effect": [
+            {
+              "kind": "heal",
+              "target": "self",
+              "flat": 25
+            }
+          ],
+          "effects": [
+            {
+              "kind": "heal",
+              "target": "self",
+              "flat": 25
+            }
+          ],
           "onceOnly": false,
           "precision": 95,
           "cost": 0,
@@ -1314,7 +1811,7 @@ const CHAR_FORMS = {
         },
         {
           "name": "Manto Protetor",
-          "dmgType": "physical",
+          "dmgType": "magic",
           "category": "melee",
           "power": 0,
           "cooldown": 0,
@@ -1343,8 +1840,20 @@ const CHAR_FORMS = {
           "category": "melee",
           "power": 70,
           "cooldown": 0,
-          "effect": null,
-          "effects": [],
+          "effect": [
+            {
+              "kind": "heal",
+              "target": "self",
+              "flat": 25
+            }
+          ],
+          "effects": [
+            {
+              "kind": "heal",
+              "target": "self",
+              "flat": 25
+            }
+          ],
           "onceOnly": false,
           "precision": 70,
           "cost": 3,
@@ -1356,22 +1865,110 @@ const CHAR_FORMS = {
           "category": "melee",
           "power": 110,
           "cooldown": 0,
-          "effect": null,
-          "effects": [],
+          "effect": [
+            {
+              "kind": "heal",
+              "target": "self",
+              "flat": 25
+            }
+          ],
+          "effects": [
+            {
+              "kind": "heal",
+              "target": "self",
+              "flat": 25
+            }
+          ],
           "onceOnly": false,
           "precision": 60,
           "cost": 5,
           "targetType": "mixed",
-          "frontlineCount": 2,
-          "backlineCount": 1
+          "frontlineCount": 1,
+          "backlineCount": 2
+        }
+      ]
+    }
+  },
+  "Escanor": {
+    "transform_15": {
+      "key": "transform_15",
+      "name": "Escanor (The One)",
+      "vida": 250,
+      "atk": 190,
+      "defFis": 100,
+      "defMag": 100,
+      "vel": 60,
+      "attacks": [
+        {
+          "name": "Espada Divina Escanor",
+          "dmgType": "physical",
+          "category": "melee",
+          "power": 50,
+          "cooldown": 0,
+          "effect": null,
+          "effects": [],
+          "onceOnly": false,
+          "precision": 95,
+          "cost": 0,
+          "targetType": "single",
+          "description": ""
+        },
+        {
+          "name": "Lança Divina Escanor",
+          "dmgType": "physical",
+          "category": "melee",
+          "power": 65,
+          "cooldown": 0,
+          "effect": null,
+          "effects": [],
+          "onceOnly": false,
+          "precision": 90,
+          "cost": 1,
+          "targetType": "single",
+          "ignoreDef": 0.2,
+          "maxDmg": 0,
+          "description": ""
+        },
+        {
+          "name": "The Cruel Sun",
+          "dmgType": "magic",
+          "category": "melee",
+          "power": 60,
+          "cooldown": 0,
+          "effect": null,
+          "effects": [],
+          "onceOnly": false,
+          "precision": 70,
+          "cost": 3,
+          "targetType": "mixed",
+          "frontlineCount": 3,
+          "backlineCount": 2,
+          "description": ""
+        },
+        {
+          "name": "Superaquecer",
+          "dmgType": "magic",
+          "category": "melee",
+          "power": 160,
+          "cooldown": 0,
+          "effect": null,
+          "effects": [],
+          "onceOnly": false,
+          "precision": 100,
+          "cost": 5,
+          "targetType": "single",
+          "onlyBelowHp": 20,
+          "recoilPct": 500,
+          "description": "",
+          "ignoreFrontline": true
         }
       ]
     }
   }
 };
 const ART = {
-  "Naruto Shippuden B": {
-    "slug": "naruto",
+  "Naruto Shippuden": {
+    "slug": "naruto-shippuden",
     "states": [
       "base",
       "dash",

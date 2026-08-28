@@ -253,11 +253,11 @@ CHARACTERS: list[Character] = [
         class_="Guerreiro", element="Normal",
         rank="S",
         attacks=[
-            Attack("Soco Direto", "physical", power=50, cooldown=0),
-            Attack("Kamehameha", "physical", power=110, cooldown=2, precision=95),
-            Attack("Kaio-ken", "physical", power=0, cooldown=3, effects=[buff("atk", 25, turns=3)]),
+            Attack("Soco Direto", "physical", power=50, effects=[heal(25)]),
+            Attack("Kamehameha", "physical", power=110, cooldown=2, precision=95, effects=[heal(25)]),
+            Attack("Kaio-ken", "physical", cooldown=3, effects=[buff("atk", 25)])
         ],
-        fourth_attack=Attack("Genki Dama", "physical", power=135, cooldown=4, precision=80),
+        fourth_attack=Attack("Genki Dama", "physical", power=135, cooldown=4, precision=80, effects=[heal(25)]),
     ),
     Character(
         name="Vegeta",
@@ -268,11 +268,11 @@ CHARACTERS: list[Character] = [
         class_="Guerreiro", element="Normal",
         rank="S",
         attacks=[
-            Attack("Soco do Orgulho Saiyajin", "physical", power=52, cooldown=0),
-            Attack("Big Bang Attack", "physical", power=115, cooldown=2, precision=93),
-            Attack("Investida Furiosa", "physical", power=0, cooldown=3, effects=[buff("atk", 28, turns=3)]),
+            Attack("Soco do Orgulho Saiyajin", "physical", power=52, effects=[heal(25)]),
+            Attack("Big Bang Attack", "physical", power=115, cooldown=2, precision=93, effects=[heal(25)]),
+            Attack("Investida Furiosa", "physical", cooldown=3, effects=[buff("atk", 28)])
         ],
-        fourth_attack=Attack("Final Flash", "physical", power=140, cooldown=4, precision=82),
+        fourth_attack=Attack("Final Flash", "physical", power=140, cooldown=4, precision=82, effects=[heal(25)]),
     ),
     Character(
         name="Freeza",
@@ -283,12 +283,11 @@ CHARACTERS: list[Character] = [
         class_="Mago", element="Sombrio",
         rank="S",
         attacks=[
-            Attack("Golpe com a Cauda", "physical", power=45, cooldown=0),
-            Attack("Disco da Morte", "magic", power=115, cooldown=2, precision=90, effects=[dot(15, turns=2)]),
-            Attack("Rajada de Energia Roxa", "magic", power=100, cooldown=2, precision=95),
+            Attack("Golpe com a Cauda", "physical", power=45, effects=[heal(25)]),
+            Attack("Disco da Morte", "magic", power=115, cooldown=2, precision=90, effects=[dot(15)]),
+            Attack("Rajada de Energia Roxa", "magic", power=100, cooldown=2, precision=95, effects=[heal(25)])
         ],
-        fourth_attack=Attack("Explosão Supernova", "magic", power=130, cooldown=4, precision=80,
-                              effects=[debuff("def", 30)]),
+        fourth_attack=Attack("Explosão Supernova", "magic", power=130, cooldown=4, precision=80, effects=[debuff("def", 30)]),
     ),
     Character(
         name="Broly",
@@ -299,12 +298,11 @@ CHARACTERS: list[Character] = [
         class_="Tanque", element="Normal",
         rank="S",
         attacks=[
-            Attack("Soco Bruto", "physical", power=58, cooldown=0),
-            Attack("Investida Selvagem", "physical", power=120, cooldown=2, precision=88),
-            Attack("Fúria Descontrolada", "physical", power=0, cooldown=3, effects=[buff("atk", 35, turns=3)]),
+            Attack("Soco Bruto", "physical", power=58, effects=[heal(25)]),
+            Attack("Investida Selvagem", "physical", power=120, cooldown=2, precision=88, effects=[heal(25)]),
+            Attack("Fúria Descontrolada", "physical", cooldown=3, effects=[buff("atk", 35)])
         ],
-        fourth_attack=Attack("Explosão de Energia Bruta", "physical", power=145, cooldown=4, precision=78,
-                              effects=[stun(chance=30)]),
+        fourth_attack=Attack("Explosão de Energia Bruta", "physical", power=145, cooldown=4, precision=78, effects=[stun(chance=30)]),
     ),
     Character(
         name="Bills",
@@ -315,11 +313,11 @@ CHARACTERS: list[Character] = [
         class_="Estrategista", element="Sagrado",
         rank="S",
         attacks=[
-            Attack("Tapa Divino", "physical", power=60, cooldown=0, precision=97),
-            Attack("Esfera de Destruição", "magic", power=125, cooldown=2, precision=90),
-            Attack("Fúria Comedida", "physical", power=0, cooldown=3, effects=[debuff("def", 35)]),
+            Attack("Tapa Divino", "physical", power=60, precision=97, effects=[heal(25)]),
+            Attack("Esfera de Destruição", "magic", power=125, cooldown=2, precision=90, effects=[heal(25)]),
+            Attack("Fúria Comedida", "physical", cooldown=3, effects=[debuff("def", 35)])
         ],
-        fourth_attack=Attack("Julgamento do Destruidor", "magic", power=140, cooldown=4, precision=85),
+        fourth_attack=Attack("Julgamento do Destruidor", "magic", power=140, cooldown=4, precision=85, effects=[heal(25)]),
     ),
     Character(
         name="Vegito",
@@ -330,11 +328,11 @@ CHARACTERS: list[Character] = [
         class_="Guerreiro", element="Sagrado",
         rank="S",
         attacks=[
-            Attack("Soco Fusionado", "physical", power=56, cooldown=0),
-            Attack("Final Kamehameha", "physical", power=125, cooldown=2, precision=92),
-            Attack("Provocação Confiante", "physical", power=0, cooldown=3, effects=[debuff("atk", 30)]),
+            Attack("Soco Fusionado", "physical", power=56, effects=[heal(25)]),
+            Attack("Final Kamehameha", "physical", power=125, cooldown=2, precision=92, effects=[heal(25)]),
+            Attack("Provocação Confiante", "physical", cooldown=3, effects=[debuff("atk", 30)])
         ],
-        fourth_attack=Attack("Big Bang Kamehameha", "magic", power=145, cooldown=4, precision=83),
+        fourth_attack=Attack("Big Bang Kamehameha", "magic", power=145, cooldown=4, precision=83, effects=[heal(25)]),
     ),
     Character(
         name="Monkey D. Luffy",
@@ -345,11 +343,11 @@ CHARACTERS: list[Character] = [
         class_="Lutador", element="Normal",
         rank="S",
         attacks=[
-            Attack("Soco de Borracha", "physical", power=52, cooldown=0),
-            Attack("Gomu Gomu no Pistol", "physical", power=110, cooldown=2, precision=95),
-            Attack("Gear Second: Rajada", "physical", power=0, cooldown=3, effects=[buff("vel", 30, turns=3)]),
+            Attack("Soco de Borracha", "physical", power=52, effects=[heal(25)]),
+            Attack("Gomu Gomu no Pistol", "physical", power=110, cooldown=2, precision=95, effects=[heal(25)]),
+            Attack("Gear Second: Rajada", "physical", cooldown=3, effects=[buff("vel", 30)])
         ],
-        fourth_attack=Attack("Gomu Gomu no Elephant Gun", "physical", power=135, cooldown=4, precision=85),
+        fourth_attack=Attack("Gomu Gomu no Elephant Gun", "physical", power=135, cooldown=4, precision=85, effects=[heal(25)]),
     ),
     Character(
         name="Roronoa Zoro",
@@ -360,11 +358,11 @@ CHARACTERS: list[Character] = [
         class_="Espadachim", element="Normal",
         rank="S",
         attacks=[
-            Attack("Corte Rápido", "physical", power=54, cooldown=0),
-            Attack("Oni Giri", "physical", power=115, cooldown=2, precision=93),
-            Attack("Concentração: Ashura", "physical", power=0, cooldown=3, effects=[buff("atk", 30, turns=3)]),
+            Attack("Corte Rápido", "physical", power=54, effects=[heal(25)]),
+            Attack("Oni Giri", "physical", power=115, cooldown=2, precision=93, effects=[heal(25)]),
+            Attack("Concentração: Ashura", "physical", cooldown=3, effects=[buff("atk", 30)])
         ],
-        fourth_attack=Attack("Santoryu: Rashomon", "physical", power=140, cooldown=4, precision=82),
+        fourth_attack=Attack("Santoryu: Rashomon", "physical", power=140, cooldown=4, precision=82, effects=[heal(25)]),
     ),
     Character(
         name="Trafalgar Law",
@@ -375,11 +373,11 @@ CHARACTERS: list[Character] = [
         class_="Mago", element="Espiritual",
         rank="S",
         attacks=[
-            Attack("Corte com Nodachi", "physical", power=48, cooldown=0),
+            Attack("Corte com Nodachi", "physical", power=48, effects=[heal(25)]),
             Attack("ROOM: Shambles", "magic", power=100, cooldown=2, precision=92, effects=[debuff("def", 30)]),
-            Attack("Counter Shock", "magic", power=0, cooldown=3, effects=[stun(chance=45)]),
+            Attack("Counter Shock", "magic", cooldown=3, effects=[stun(chance=45)])
         ],
-        fourth_attack=Attack("Gamma Knife", "magic", power=125, cooldown=4, precision=85, effects=[dot(18, turns=2)]),
+        fourth_attack=Attack("Gamma Knife", "magic", power=125, cooldown=4, precision=85, effects=[dot(18)]),
     ),
     Character(
         name="Tony Tony Chopper",
@@ -390,11 +388,11 @@ CHARACTERS: list[Character] = [
         class_="Suporte", element="Natureza",
         rank="S",
         attacks=[
-            Attack("Chute de Rena", "physical", power=35, cooldown=0),
-            Attack("Rumble Ball: Guard Point", "physical", power=0, cooldown=3, effects=[shield(55)]),
-            Attack("Kung-Fu Point: Investida", "physical", power=70, cooldown=2),
+            Attack("Chute de Rena", "physical", power=35, effects=[heal(25)]),
+            Attack("Rumble Ball: Guard Point", "physical", cooldown=3, effects=[shield(55)]),
+            Attack("Kung-Fu Point: Investida", "physical", power=70, cooldown=2, effects=[heal(25)])
         ],
-        fourth_attack=Attack("Cura de Emergência", "magic", power=0, cooldown=3, effects=[heal(60)]),
+        fourth_attack=Attack("Cura de Emergência", "magic", cooldown=3, effects=[heal(60)]),
     ),
     Character(
         name="Barba Branca",
@@ -405,13 +403,11 @@ CHARACTERS: list[Character] = [
         class_="Tanque", element="Terra",
         rank="S",
         attacks=[
-            Attack("Soco Pesado", "physical", power=58, cooldown=0),
-            Attack("Gura Gura no Mi: Onda de Choque", "physical", power=125, cooldown=2, precision=88,
-                   effects=[debuff("def", 35)]),
-            Attack("Presença Intimidadora", "physical", power=0, cooldown=3, effects=[stun(chance=25)]),
+            Attack("Soco Pesado", "physical", power=58, effects=[heal(25)]),
+            Attack("Gura Gura no Mi: Onda de Choque", "physical", power=125, cooldown=2, precision=88, effects=[debuff("def", 35)]),
+            Attack("Presença Intimidadora", "physical", cooldown=3, effects=[stun(chance=25)])
         ],
-        fourth_attack=Attack("Terremoto Absoluto", "physical", power=150, cooldown=5, precision=75,
-                              effects=[dot(20, turns=2)]),
+        fourth_attack=Attack("Terremoto Absoluto", "physical", power=150, cooldown=5, precision=75, effects=[dot(20)]),
     ),
     Character(
         name="Barba Negra",
@@ -422,50 +418,66 @@ CHARACTERS: list[Character] = [
         class_="Mago", element="Sombrio",
         rank="S",
         attacks=[
-            Attack("Soco das Trevas", "physical", power=50, cooldown=0),
-            Attack("Yami Yami no Mi: Black Hole", "magic", power=110, cooldown=2, precision=90,
-                   effects=[debuff("def", 35)]),
-            Attack("Onda de Choque Sombria", "magic", power=0, cooldown=3, effects=[stun(chance=35)]),
+            Attack("Soco das Trevas", "physical", power=50, effects=[heal(25)]),
+            Attack("Yami Yami no Mi: Black Hole", "magic", power=110, cooldown=2, precision=90, effects=[debuff("def", 35)]),
+            Attack("Onda de Choque Sombria", "magic", cooldown=3, effects=[stun(chance=35)])
         ],
-        fourth_attack=Attack("Trevas Absolutas", "magic", power=135, cooldown=4, precision=82,
-                              effects=[dot(18, turns=2)]),
+        fourth_attack=Attack("Trevas Absolutas", "magic", power=135, cooldown=4, precision=82, effects=[dot(18)]),
     ),
     Character(
-        name="Naruto Shippuden B",
+        name="Naruto Shippuden",
         anime="Naruto",
         style="hybrid",
         level="strong",
         hp=150, atk=125, def_fis=95, def_mag=90, vel=90,
-        class_="Guerreiro", element="Vento",
+        class_="Lutador", element="Vento",
         rank="B",
         attacks=[
-            Attack("Clone das Sombras", "physical", power=40, cooldown=0, precision=95, cost=0,
-                   effects=[next_dodge(10)]),
-            Attack("Rasengan", "magic", power=60, cooldown=0, precision=85, cost=2,
-                   effects=[stun(chance=20, turns=1)]),
-            Attack("Rasen-Shuriken", "magic", power=70, cooldown=0, precision=75, cost=3,
-                   ignore_frontline=True),
+            Attack("Clone das Sombras", "physical", power=40, precision=95, effects=[next_dodge(10)]),
+            Attack("Rasengan", "magic", power=60, precision=85, cost=2, effects=[stun(chance=20)]),
+            Attack("Rasen-Shuriken", "magic", power=70, precision=75, cost=3, ignore_frontline=True, effects=[heal(25)])
         ],
-        fourth_attack=Attack("Transformação — Manto 4 Caudas", "physical", power=0, cooldown=0,
-                              precision=100, cost=5, transforms_into="manto_4_caudas"),
+        fourth_attack=Attack("Transformação — Manto 4 Caudas", "physical", cost=5, transforms_into="manto_4_caudas", effects=[heal(25)]),
         forms={
-            "manto_4_caudas": Form(
-                name="Manto 4 Caudas A",
-                hp=170, atk=150, def_fis=90, def_mag=90, vel=100,
-                attacks=[
-                    Attack("Força Bruta", "physical", power=45, cooldown=0, precision=95, cost=0),
-                    Attack("Manto Protetor", "physical", power=0, cooldown=0, precision=100, cost=2,
-                           effects=[heal_pct_atk(30)]),
-                    Attack("Onda de Choque", "magic", power=70, cooldown=0, precision=70, cost=3,
-                           target_type="nearest_line_all"),
-                    Attack("Mini Bijuudama", "magic", power=110, cooldown=0, precision=60, cost=5,
-                           target_type="mixed", frontline_count=2, backline_count=1),
-                ],
-            ),
+        "manto_4_caudas": Form(
+            name="Manto 4 Caudas",
+            hp=170, atk=150, def_fis=90, def_mag=90, vel=100,
+            attacks=[
+                Attack("Força Bruta", "physical", power=45, precision=95, effects=[heal(25)]),
+                Attack("Manto Protetor", "magic", cost=2, effects=[heal_pct_atk(30)]),
+                Attack("Onda de Choque", "magic", power=70, precision=70, cost=3, target_type="nearest_line_all", effects=[heal(25)]),
+                Attack("Mini Bijuudama", "magic", power=110, precision=60, cost=5, target_type="mixed", frontline_count=1, backline_count=2, effects=[heal(25)])
+            ],
+        ),
         },
-        # Arte real (não procedural): uma pose por estado, espelhada
-        # automaticamente pelo jogo quando ele está no campo inimigo.
-        sprite=dict(slug="naruto", states=["base", "dash", "block"], facing="left"),
+        sprite=dict(slug="naruto-shippuden", states=["base", "dash", "block"], facing="left"),
+    ),
+    Character(
+        name="Escanor",
+        anime="Seven Deadly Sins",
+        style="hybrid",
+        level="strong",
+        hp=210, atk=150, def_fis=110, def_mag=110, vel=70,
+        class_="Guerreiro", element="Fogo",
+        rank="S",
+        attacks=[
+            Attack("Super Corte", "physical", power=30, precision=95, description="", effects=[dot(10, turns=3)]),
+            Attack("Machado Divino Rhitta", "physical", power=70, precision=90, cost=1, description="", effects=[dot(10, turns=3)]),
+            Attack("Sol Cruel", "magic", power=100, precision=80, cost=3, target_type="mixed", ignore_frontline=True, frontline_count=1, backline_count=1, description="", effects=[dot(10, turns=3)])
+        ],
+        fourth_attack=Attack("The One", "physical", power=100, cooldown=4, transforms_into="transform_15", description="", effects=[heal(30)]),
+        forms={
+        "transform_15": Form(
+            name="Escanor (The One)",
+            hp=250, atk=190, def_fis=100, def_mag=100, vel=60,
+            attacks=[
+                Attack("Espada Divina Escanor", "physical", power=50, precision=95, description=""),
+                Attack("Lança Divina Escanor", "physical", power=65, precision=90, cost=1, ignore_def=0.2, max_dmg=0, description=""),
+                Attack("The Cruel Sun", "magic", power=60, precision=70, cost=3, target_type="mixed", frontline_count=3, backline_count=2, description=""),
+                Attack("Superaquecer", "magic", power=160, cost=5, ignore_frontline=True, only_below_hp=20, recoil_pct=500, description="")
+            ],
+        ),
+        },
     ),
 ]
 
