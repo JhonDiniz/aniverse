@@ -1650,7 +1650,17 @@ const STATE_FILE = {
   // por personagem, só 1.
 };
 // Quem usa esse conjunto de poses (em vez do front/back antigo do Son Goku).
-function usesPoseArt(c){ const a = ART[c.name]; return !!(a && a.states.indexOf("base") >= 0); }
+function usesPoseArt(c, formKey){ const a = resolvedArt(c, formKey); return !!(a && a.states.indexOf("base") >= 0); }
+// Se a forma ativa (transformação) tiver seu próprio `sprite=dict(...)`
+// (opcional, definido em Character.forms[chave].sprite), usa essa arte
+// enquanto transformado; senão cai pra arte do personagem base (ART[c.name]).
+function resolvedArt(c, formKey){
+  if(formKey && typeof CHAR_FORMS !== "undefined"){
+    const f = CHAR_FORMS[c.name] && CHAR_FORMS[c.name][formKey];
+    if(f && f.sprite) return f.sprite;
+  }
+  return ART[c.name];
+}
 
 // ART também vem de characters.generated.js (gerado a partir do campo
 // sprite de cada Character em characters.py). Não declare ART aqui.
@@ -1665,13 +1675,13 @@ function usesPoseArt(c){ const a = ART[c.name]; return !!(a && a.states.indexOf(
      background-position-x: índice/(N-1) * 100% -- desliza até o quadro certo
    Isso funciona em qualquer altura de tela (celular/desktop) sem precisar
    calcular pixel nenhum na mão. */
-function poseSheetURL(c){
-  const a = ART[c.name];
+function poseSheetURL(c, formKey){
+  const a = resolvedArt(c, formKey);
   if(!a) return null;
   return ASSET_BASE + a.slug + "/sheet.png";
 }
-function posePosition(c, pose){
-  const a = ART[c.name];
+function posePosition(c, pose, formKey){
+  const a = resolvedArt(c, formKey);
   if(!a) return 0;
   const n = a.states.length;
   const idx = a.states.indexOf(pose);
@@ -1709,16 +1719,31 @@ function hasArt(c){ return !!ART[c.name]; }
 const preloaded = {};
 function preloadArt(c){
   const a = ART[c.name];
-  if(!a || preloaded[c.name]) return;
-  preloaded[c.name] = true;
-  if(usesPoseArt(c)){
-    // Um sheet.png só, não um arquivo por estado.
-    const im = new Image();
-    im.onerror = () => console.warn(`Sprite sheet de ${c.name} não carregou (${poseSheetURL(c)}) -- ele vai aparecer com o fundo cinza do CSS até o arquivo existir.`);
-    im.src = poseSheetURL(c);
-    return;
+  if(a && !preloaded[c.name]){
+    preloaded[c.name] = true;
+    if(usesPoseArt(c)){
+      const im = new Image();
+      im.onerror = () => console.warn(`Sprite sheet de ${c.name} não carregou (${poseSheetURL(c)}) -- ele vai aparecer com o fundo cinza do CSS até o arquivo existir.`);
+      im.src = poseSheetURL(c);
+    } else {
+      a.states.forEach(st=>{ const im = new Image(); im.src = artURL(c, st); });
+    }
   }
-  a.states.forEach(st=>{ const im = new Image(); im.src = artURL(c, st); });
+  // Formas (transformação) com arte própria opcional -- pré-carrega também,
+  // pra não atrasar a primeira transformação em batalha.
+  const forms = (typeof CHAR_FORMS !== "undefined") && CHAR_FORMS[c.name];
+  if(forms){
+    Object.keys(forms).forEach(key=>{
+      const sprite = forms[key].sprite;
+      if(!sprite) return;
+      const cacheKey = c.name+"::"+key;
+      if(preloaded[cacheKey]) return;
+      preloaded[cacheKey] = true;
+      const im = new Image();
+      im.onerror = () => console.warn(`Sprite sheet da transformação "${key}" de ${c.name} não carregou.`);
+      im.src = ASSET_BASE + sprite.slug + "/sheet.png";
+    });
+  }
 }
 
 /* Se um arquivo faltar ou falhar, o personagem cai no stick figure em vez de
@@ -1816,17 +1841,18 @@ function fighterArt(c, opts){
   // desenhado olhando pra qualquer lado (sprite.facing em characters.py).
   // Por isso o espelhamento é calculado, não fixo num lado: só espelha o
   // lado onde a direção da arte NÃO bate com a convenção desse lado.
-  const facing = (usesPoseArt(c) && ART[c.name].facing) || "right";
+  const formKey = o.formKey || null;
+  const facing = (usesPoseArt(c, formKey) && resolvedArt(c, formKey).facing) || "right";
   const precisaEspelhar = o.side==="player" ? facing==="left" : facing==="right";
-  const mirrorCls = (usesPoseArt(c) && precisaEspelhar) ? " mirror-x" : "";
+  const mirrorCls = (usesPoseArt(c, formKey) && precisaEspelhar) ? " mirror-x" : "";
 
   // Arte por pose = UM sheet.png com todas as poses lado a lado (ver comentário
   // em poseSheetURL). É uma <div> com background-position, não uma <img> --
   // por isso esse caso vem ANTES de bitmapFor() e é resolvido por completo aqui.
-  if(usesPoseArt(c)){
-    const a = ART[c.name];
-    const sheet = poseSheetURL(c);
-    const pct = posePosition(c, artPose);
+  if(usesPoseArt(c, formKey)){
+    const a = resolvedArt(c, formKey);
+    const sheet = poseSheetURL(c, formKey);
+    const pct = posePosition(c, artPose, formKey);
     const ratio = `${SPRITE_CANVAS.w} / ${SPRITE_CANVAS.h}`;
     return `<div class="sprite-direction${mirrorCls}">
       <div class="sprite-img sprite-bitmap sprite-posesheet ${cls}"
@@ -1900,7 +1926,7 @@ const RANK_ORDER  = ["D","C","B","A","S","Z"]; // crescente
 // Ataques podem ter um `cost` (0-5): só usáveis com carga >= cost, e o uso
 // debita esse valor da carga. cost=0 é sempre utilizável.
 const CHARGE_MAX = 5;
-const SUPPORT_MAX = 5;  // carga máxima do suporte (mesma escala do CHARGE_MAX) -- estava faltando, causava ReferenceError ao renderizar a batalha
+const SUPPORT_MAX = 5;  // carga máxima do suporte (mesma escala do CHARGE_MAX)
 const CHARGE_STEP = 0.75;
 function addCharge(state, id, amount){
   const b = state.battle;
@@ -3996,7 +4022,7 @@ function formationChip(state, id, key, opts){
       <div class="stage-slot" data-fighter-id="${id}">
         <div class="sprite-box ${boxCls}">
           ${auraHTML}
-          ${fighterArt(c,{view, transformed, alive:vivo, side:opts.side, className:'sprite-chip'+(vivo?' anim-idle':'')})}
+          ${fighterArt(c,{view, transformed, alive:vivo, side:opts.side, formKey:(b.activeForm && b.activeForm[id])||null, className:'sprite-chip'+(vivo?' anim-idle':'')})}
         </div>
       </div>
       ${opts.isSupport ? `<div class="fchip-charge"><div class="fchip-charge-fill" style="width:${(carga/SUPPORT_MAX)*100}%"></div></div>` : ''}
