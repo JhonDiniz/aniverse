@@ -449,8 +449,21 @@
      de que lado (jogador ou inimigo) aplicar .mirror-x pra fechar a
      convenção "time do jogador olha pra direita, inimigo olha pra
      esquerda" -- sem precisar de uma segunda arte desenhada ao contrário. */
-  .sprite-direction{display:block; width:100%; transform-origin:50% 100%;}
+  .sprite-direction{display:flex; justify-content:center; width:100%; transform-origin:50% 100%;}
   .sprite-direction.mirror-x{transform:scaleX(-1);}
+
+  /* Imagem de transição da transformação -- some sozinha depois de TRANSFORM_MS. */
+  .transform-transition-img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    z-index:15; pointer-events:none;
+    animation: transitionFade 3.4s ease-in-out;
+  }
+  @keyframes transitionFade{
+    0%{opacity:0; transform:scale(.85);}
+    15%{opacity:1; transform:scale(1);}
+    85%{opacity:1;}
+    100%{opacity:0; transform:scale(1.08);}
+  }
   /* O espelhamento fica no wrapper e a animação no sprite interno. Assim
      scaleX(-1) nunca é sobrescrito pelo transform das animações de idle/ataque. */
   .mirror-x{ transform:scaleX(-1); }
@@ -834,7 +847,7 @@
   .lineup-fighter.dragging{opacity:.42; transform:scale(.96);}
   .lineup-fighter.drag-over{filter:drop-shadow(0 0 14px rgba(79,179,169,.9));}
   .lineup-fighter .lineup-sprite{height:clamp(105px,17vh,185px); width:auto; max-width:100%;}
-  .lineup-fighter .sprite-direction{height:auto; display:block;}
+  .lineup-fighter .sprite-direction{height:auto; display:flex; justify-content:center;}
   .lineup-fighter .lineup-hp{
     width:clamp(72px,7vw,110px); height:5px; border-radius:5px; background:#05060a;
     border:1px solid rgba(0,0,0,.6); margin-bottom:5px; opacity:.75;
@@ -1898,7 +1911,8 @@ Object.keys(RAW).forEach(anime=>{
       vida: kit.vida, atk: kit.atk,
       defFis: kit.defFis, defMag: kit.defMag, vel: kit.vel,
       attacks: fourthAtk ? [...kit.attacks, fourthAtk] : [...kit.attacks],
-      appearance: ap ? {skin:ap[0], hairColor:ap[1], hairStyle:ap[2], outfit:ap[3], outfit2:ap[4]} : null
+      appearance: ap ? {skin:ap[0], hairColor:ap[1], hairStyle:ap[2], outfit:ap[3], outfit2:ap[4]} : null,
+      passive: PASSIVES[name] || null
     };
     CHARACTERS.push(character);
   });
@@ -3589,33 +3603,36 @@ async function flipCoin(){
 }
 
 /* ============ MOTOR DE BATALHA ============
-   TURNOS SIMULTÂNEOS: os dois jogadores escolhem a ação (atacar, trocar, ou
-   Ultimate quando for do tipo que usa o turno) sem ver o que o outro escolheu.
-   Só quando os DOIS têm uma ação pendente é que o turno resolve — e resolve na
-   ordem de VELOCIDADE do personagem que está agindo (quem troca age com a
-   velocidade de quem ENTRA, já que é ele quem golpeia). Ver `pending` no estado
-   e `resolveTurn()` mais abaixo. Não existe mais "vez de fulano". */
+   PRIORIDADE POR VELOCIDADE (ATB): não existe mais rodada simultânea nem
+   "vez de fulano" por jogador. Cada um dos 10 personagens em campo (5+5)
+   tem sua própria prioridade, começando em 0. A cada tick da simulação,
+   soma-se a VELOCIDADE de cada um na prioridade dele; assim que alguém
+   cruza 1000, desconta 1000 e é a vez dele -- os outros mantêm o que já
+   acumularam. Um personagem de 200 de velocidade cruza 1000 em ~5 ticks;
+   um de 60 precisa de ~17 -- na prática, o rápido age ~3x pra cada 1x do
+   lento. Ver advanceCharacterTurn() logo abaixo. */
 function initBattle(state){
   // Todos os 5 personagens vivos participam da iniciativa. A posição (dianteira
   // ou traseira) continua controlando proteção/targeting, não se o personagem
   // possui ou não turno.
-  const todos = [...state.teams.p1, ...state.teams.p2];
-  const turnQueue = todos.sort((a,b)=>charById(b).vel-charById(a).vel || String(a).localeCompare(String(b)));
-  const first = turnQueue[0];
   const battle = {
-    pending:null, turnQueue, turnIndex:0, currentActorId:first || null,
-    activeChar:{p1:first && state.teams.p1.includes(first)?first:null,p2:first && state.teams.p2.includes(first)?first:null},
+    pending:null, priority:{}, currentActorId:null,
+    activeChar:{p1:null,p2:null},
     mustSwitch:{p1:false,p2:false},
     hp:{}, cooldowns:{}, onceUsed:{}, stunned:{}, def:{}, tempDef:{}, atkBonus:{},
     maxLifeBonus:{}, transformed:{}, dot:{}, growOnHit:{}, transformActive:{}, stunImmune:{}, selfRecoil:{},
     supportCharge:{}, mods:{}, survive1:{}, taunt:{}, confused:{}, charge:{}, atkOverride:{}, velOverride:{}, activeForm:{}, nextDodge:{},
-    log:[`A batalha começou! ${first ? charById(first).name : ''} será o primeiro a agir.`]
+    log:[]
   };
   [...state.teams.p1,...state.teams.p2].forEach(id=>{
     const c=charById(id); battle.hp[id]=c.vida; battle.def[id]={fis:c.defFis,mag:c.defMag};
     battle.cooldowns[id]=[0,0,0,0]; battle.onceUsed[id]=[false,false,false,false]; battle.stunned[id]=false;
-    battle.atkBonus[id]=0; battle.maxLifeBonus[id]=0; battle.charge[id]=0;
+    battle.atkBonus[id]=0; battle.maxLifeBonus[id]=0; battle.charge[id]=0; battle.priority[id]=0;
   });
+  state.battle = battle; // velStat() e as outras funções de status sempre leem state.battle
+  [...state.teams.p1,...state.teams.p2].forEach(id=> applyPassive(state, id, "always"));
+  advanceCharacterTurn(state);
+  battle.log = [`A batalha começou! ${battle.currentActorId ? charById(battle.currentActorId).name : ''} será o primeiro a agir.`];
   return battle;
 }
 
@@ -3689,7 +3706,7 @@ function liveChar(state, id){
   const forms = CHAR_FORMS[c.name];
   const form = forms && forms[formKey];
   if(!form) return c;
-  return Object.assign({}, c, {name: form.name, attacks: form.attacks, _formKey: formKey});
+  return Object.assign({}, c, {name: form.name, attacks: form.attacks, _formKey: formKey, passive: form.passive || c.passive});
 }
 
 function applyFormTransform(state, attackerId, formKey){
@@ -3712,6 +3729,8 @@ function applyFormTransform(state, attackerId, formKey){
   b.cooldowns[attackerId] = [0,0,0,0];
   b.onceUsed[attackerId] = [false,false,false,false];
   b.log.unshift(`${c.name} se transforma em ${form.name}!`);
+  const transitionSlug = form.transitionSprite ? form.transitionSprite.slug : null;
+  pushFx(b, {kind:"transform", targetId: attackerId, name: form.name, transitionSlug, effects: []});
 }
 
 /* ---------- LINHAS DE BATALHA (dianteira/traseira) e SELEÇÃO DE ALVO ----------
@@ -3910,6 +3929,51 @@ function actorSpeed(state, key, action){
 }
 function actorIdFor(state, key, action){ return action && action.actorId ? action.actorId : state.battle.currentActorId; }
 
+/* Executa a ação do personagem cujo turno chegou (modelo novo: 1 turno = 1
+   personagem, não mais "rodada simultânea dos dois jogadores"). Recriada
+   aqui porque a migração pro sistema de prioridade/turno único tinha
+   removido essa função e deixado maybeResolveTurn() chamando algo que não
+   existia mais -- era por isso que clicar num alvo não fazia nada. */
+function executeAction(state, key, action){
+  const b = state.battle;
+  const activeId = (action && action.actorId) || b.currentActorId;
+  if(!activeId || b.hp[activeId]<=0) return;
+  if(b.stunned[activeId]){
+    const c = charById(activeId);
+    b.log.unshift(`${c.name} estava atordoado e perdeu a vez.`);
+    b.stunned[activeId] = false;
+    tickStunImmunity(state, activeId);
+    return;
+  }
+  if(!action || action.type!=='attack') return; // troca/espera não existem mais nesse modelo
+
+  const attackerKey = teamOf(state, activeId);
+  const oppKey = otherKey(attackerKey);
+  const atk = liveChar(state, activeId).attacks[action.atkIndex];
+  let alvos;
+  if(!atk){
+    alvos = [];
+  } else if(atk.transformsInto){
+    alvos = []; // transformação não mira ninguém
+  } else if(!atk.targetType || atk.targetType==="single"){
+    const elegiveis = eligibleTargets(state, attackerKey, atk);
+    if(b.confused && b.confused[activeId] && Math.random() < 0.5){
+      alvos = [activeId];
+      b.log.unshift(`${charById(activeId).name} está confuso e se ataca!`);
+    } else if(action.targetId && elegiveis.includes(action.targetId)){
+      alvos = [action.targetId];
+    } else {
+      // sem escolha explícita (ou escolha inválida): prioriza o último ativo
+      // conhecido do lado oposto se ele estiver entre os elegíveis.
+      const ativoOpp = b.activeChar[oppKey];
+      alvos = elegiveis.includes(ativoOpp) ? [ativoOpp] : elegiveis.slice(0,1);
+    }
+  } else {
+    alvos = eligibleTargets(state, attackerKey, atk);
+  }
+  applyAction(state, activeId, action.atkIndex, alvos);
+}
+
 /* Cada turno pertence a UM personagem. Não existe rodada simultânea e não existe substituição. */
 function maybeResolveTurn(state){
   const b=state.battle;
@@ -3921,19 +3985,42 @@ function maybeResolveTurn(state){
   advanceCharacterTurn(state);
   return true;
 }
+/* SISTEMA DE PRIORIDADE (substitui a fila estática por velocidade que existia
+   antes -- aquilo só intercalava todo mundo numa ordem fixa, sem dar mais
+   turnos a quem é mais rápido). Agora é um acumulador de verdade:
+
+     - todo mundo começa com prioridade 0;
+     - a cada "tick", soma a VELOCIDADE do personagem na prioridade dele;
+     - assim que a prioridade de alguém chega ou passa de 1000, desconta
+       1000 e esse personagem age;
+     - se mais de um cruzar 1000 no mesmo tick, quem tiver a prioridade
+       (e depois a velocidade) maior age primeiro -- o outro fica pronto
+       pro próximo turno, sem perder o excedente acumulado.
+
+   Um personagem com 200 de velocidade cruza 1000 a cada 5 ticks; um com 60
+   de velocidade precisa de ~17 ticks -- na prática, o de 200 age 3x pra
+   cada 1x do de 60, exatamente como pedido. */
 function advanceCharacterTurn(state){
-  const b=state.battle;
-  if(!b || !b.turnQueue.length) return;
-  let checked=0;
-  do{
-    b.turnIndex=(b.turnIndex+1)%b.turnQueue.length;
-    b.currentActorId=b.turnQueue[b.turnIndex];
-    checked++;
-  }while(checked<=b.turnQueue.length && b.hp[b.currentActorId]<=0);
-  const id=b.currentActorId;
-  const key=teamOf(state,id);
-  b.activeChar.p1 = key==='p1' ? id : b.activeChar.p1;
-  b.activeChar.p2 = key==='p2' ? id : b.activeChar.p2;
+  const b = state.battle;
+  const vivos = () => [...state.teams.p1, ...state.teams.p2].filter(id=>b.hp[id]>0);
+  let prontos = vivos().filter(id => (b.priority[id]||0) >= 1000);
+  let guard = 0;
+  while(prontos.length===0 && guard < 100000){
+    const ids = vivos();
+    if(!ids.length) break;
+    ids.forEach(id => { b.priority[id] = (b.priority[id]||0) + velStat(state,id); });
+    prontos = ids.filter(id => (b.priority[id]||0) >= 1000);
+    guard++;
+  }
+  if(!prontos.length){ b.currentActorId = null; return; }
+  prontos.sort((x,y) => (b.priority[y]-b.priority[x]) || (velStat(state,y)-velStat(state,x)) || String(x).localeCompare(String(y)));
+  const next = prontos[0];
+  b.priority[next] -= 1000;
+  b.currentActorId = next;
+  const key = teamOf(state, next);
+  b.activeChar.p1 = key==='p1' ? next : b.activeChar.p1;
+  b.activeChar.p2 = key==='p2' ? next : b.activeChar.p2;
+  applyPassive(state, next, "turn_start");
 }
 function checkForcedSwitch(state){ return false; }
 
@@ -4043,10 +4130,14 @@ function formationSide(state, key, side, mine, podeInteragir, forcado, targetabl
   const frente = combate.map(id=>formationChip(state,id,key,opts(false))).join("");
   const tras = suporte.map(id=>formationChip(state,id,key,opts(true))).join("");
   // A coluna SEMPRE segue a regra espacial: a dianteira fica voltada para o
-  // centro. Jogador: traseira | dianteira. Inimigo: dianteira | traseira.
+  // centro (onde os dois times se encontram), a traseira fica na ponta de
+  // fora. Como o inimigo é renderizado primeiro (fica na esquerda da tela) e
+  // o jogador depois (direita), a ordem DENTRO de cada bloco precisa ser
+  // espelhada entre os dois pra que a dianteira de ambos fique voltada uma
+  // pra outra: inimigo = [traseira][dianteira], jogador = [dianteira][traseira].
   const colunas = side==="player"
-    ? `<div class="fcol fcol-back" data-line="back">${tras}</div><div class="fcol fcol-front" data-line="front">${frente}</div>`
-    : `<div class="fcol fcol-front" data-line="front">${frente}</div><div class="fcol fcol-back" data-line="back">${tras}</div>`;
+    ? `<div class="fcol fcol-front" data-line="front">${frente}</div><div class="fcol fcol-back" data-line="back">${tras}</div>`
+    : `<div class="fcol fcol-back" data-line="back">${tras}</div><div class="fcol fcol-front" data-line="front">${frente}</div>`;
   return `<div class="fside fside-${side}" data-side="${side}">${colunas}</div>`;
 }
 
@@ -4124,7 +4215,7 @@ function renderBattle(state){
   let targetable=null;
   if(isMyTurn && PENDING_TARGET_ATK!==null && actor){
     const atk=actor.attacks[PENDING_TARGET_ATK];
-    if(atk){ const elig=eligibleTargets(state,myKey,atk); if(elig.length>1) targetable=new Set(elig); else if(elig.length===1){PENDING_TARGET_ATK=null; submitAction({type:'attack',atkIndex:PENDING_TARGET_ATK,targetId:elig[0]});} else PENDING_TARGET_ATK=null; }
+    if(atk){ const elig=eligibleTargets(state,myKey,atk); if(elig.length>1) targetable=new Set(elig); else if(elig.length===1){const idx=PENDING_TARGET_ATK; PENDING_TARGET_ATK=null; submitAction({type:'attack',atkIndex:idx,targetId:elig[0]});} else PENDING_TARGET_ATK=null; }
   }
   let bannerText;
   if(!actor) bannerText='Batalha iniciando...';
@@ -4163,34 +4254,48 @@ function combatLog(state){
   return `<div class="chat-panel"><div class="chat-panel-title">Combate</div>${corpo}</div>`;
 }
 
-/* ---------- coluna de iniciativa (ORDEM DOS ATAQUES) ----------
-   Lista os 5 de cada time (dianteira + traseira), ordenados por velocidade
-   -- quem tem mais velocidade tende a agir primeiro na rodada. É um preview
-   de prioridade; o motor de batalha resolve por rodada simultânea (ver
-   maybeResolveTurn), então isto não substitui a lógica de quem realmente
-   agiu primeiro -- só ajuda o jogador a prever. */
-function initiativeColumn(state,myKey,oppKey){
-  const b=state.battle, queue=b.turnQueue||[];
-  const vivos=queue.filter(id=>id && b.hp[id]>0);
-  const slots=[];
-  if(vivos.length){
-    let idx=queue.indexOf(b.currentActorId);
-    if(idx<0) idx=0;
-    let scanned=0;
-    while(slots.length<5 && scanned<queue.length*6){
-      const id=queue[idx];
-      if(id && b.hp[id]>0){
-        const mine=teamOf(state,id)===myKey, c=charById(id);
-        const repeated=slots.some(x=>x.id===id);
-        slots.push({id,html:`<div class="init-slot ${slots.length===0?'is-next':''} ${repeated?'is-repeat':''}" title="${c.name} — velocidade ${velStat(state,id)}">
-          ${fighterArt(c,{view:mine?'back':'front',side:mine?'player':'enemy',alive:true,className:'sprite-chip'})}
-          <span class="init-name">${c.name}</span><span class="init-spd">⚡${velStat(state,id)}</span></div>`});
-      }
-      idx=(idx+1)%queue.length; scanned++;
+/* Simula o acumulador de prioridade PRA FRENTE, sem mexer no estado de
+   verdade -- só pra mostrar "quem vai agir a seguir" na coluna de
+   iniciativa. Usa a MESMA regra de advanceCharacterTurn(). */
+function predictNextActors(state, count){
+  const b = state.battle;
+  const simPriority = {...b.priority};
+  const vivos = [...state.teams.p1, ...state.teams.p2].filter(id=>b.hp[id]>0);
+  const result = [];
+  for(let n=0; n<count && vivos.length; n++){
+    let prontos = vivos.filter(id => (simPriority[id]||0) >= 1000);
+    let guard = 0;
+    while(prontos.length===0 && guard<100000){
+      vivos.forEach(id => { simPriority[id] = (simPriority[id]||0) + velStat(state,id); });
+      prontos = vivos.filter(id => (simPriority[id]||0) >= 1000);
+      guard++;
     }
+    if(!prontos.length) break;
+    prontos.sort((x,y)=>(simPriority[y]-simPriority[x])||(velStat(state,y)-velStat(state,x))||String(x).localeCompare(String(y)));
+    const next = prontos[0];
+    simPriority[next] -= 1000;
+    result.push(next);
   }
-  while(slots.length<5){ slots.push({id:null,html:`<div class="init-slot"><span class="init-name">—</span></div>`}); }
-  return `<div class="initiative-col"><div class="initiative-title">Próximos turnos · 5</div>${slots.map(s=>s.html).join('')}</div>`;
+  return result;
+}
+
+/* ---------- coluna de iniciativa (ORDEM DOS ATAQUES) ----------
+   Mostra o personagem que está no turno agora + os 4 próximos previstos
+   pelo simulador acima -- reflete de verdade o sistema de prioridade por
+   velocidade (quem é mais rápido aparece mais vezes na lista). */
+function initiativeColumn(state,myKey,oppKey){
+  const b=state.battle;
+  const upcoming = b.currentActorId
+    ? [b.currentActorId, ...predictNextActors(state,4)]
+    : predictNextActors(state,5);
+  const slots = upcoming.slice(0,5).map((id,i)=>{
+    const mine=teamOf(state,id)===myKey, c=charById(id);
+    return `<div class="init-slot ${i===0?'is-next':''}" title="${c.name} — velocidade ${velStat(state,id)}">
+      ${fighterArt(c,{view:mine?'back':'front',side:mine?'player':'enemy',alive:true,className:'sprite-chip'})}
+      <span class="init-name">${c.name}</span><span class="init-spd">⚡${velStat(state,id)}</span></div>`;
+  });
+  while(slots.length<5){ slots.push(`<div class="init-slot"><span class="init-name">—</span></div>`); }
+  return `<div class="initiative-col"><div class="initiative-title">Próximos turnos · 5</div>${slots.join('')}</div>`;
 }
 
 /* ---------- camada de efeitos ---------- */
@@ -4264,7 +4369,7 @@ function spawnNumber(layer, pos, text, isHeal){
    volta pra arte de carga, segura, e só então revela a arte que já estava lá.
    Como as 6 artes compartilham o mesmo canvas ancorado, trocar o src não desloca
    um pixel — a troca some dentro do clarão. */
-function playTransformation(targetId, ultName){
+function playTransformation(targetId, ultName, transitionSlug){
   const stage = document.getElementById("battleStage");
   const layer = document.getElementById("fxLayer");
   const slot  = app.querySelector(`.stage-slot[data-fighter-id="${targetId}"]`);
@@ -4278,6 +4383,21 @@ function playTransformation(targetId, ultName){
     document.body.appendChild(title);
     setTimeout(()=>title.remove(), TRANSFORM_MS + 200);
   }
+
+  // Imagem de transição (opcional, form.transition_sprite em characters.py):
+  // um PNG único, tocado por cima do personagem enquanto ele transforma.
+  // Não depende do sistema antigo de bitmap frente/costas -- funciona pra
+  // qualquer tipo de arte (pose única, procedural, stick figure).
+  if(transitionSlug && slot){
+    const overlay = document.createElement("img");
+    overlay.src = `${ASSET_BASE}${transitionSlug}/transition.png`;
+    overlay.className = "transform-transition-img";
+    overlay.alt = "";
+    overlay.onerror = () => overlay.remove();
+    slot.appendChild(overlay);
+    setTimeout(()=>overlay.remove(), TRANSFORM_MS);
+  }
+
   if(!stage || !layer || !slot) return;
 
   const box = slot.querySelector(".sprite-box");
@@ -4353,7 +4473,7 @@ function playFxEvent(ev, state){
   const sRect = stage.getBoundingClientRect();
 
   if(ev.kind==="transform"){
-    playTransformation(ev.targetId, ev.name);
+    playTransformation(ev.targetId, ev.name, ev.transitionSlug);
     return TRANSFORM_MS;
   }
 
@@ -4651,6 +4771,31 @@ function applyEffects(state, attackerId, targetId, atk, fxEffects){
   });
 }
 
+/* ---------- SISTEMA DE PASSIVA ----------
+   Opcional em Character e em cada Form (ver classe Passive em characters.py).
+   Um personagem transformado usa a passiva da FORMA se ela tiver uma,
+   senão continua com a do personagem base (ver liveChar()). Reaproveita o
+   mesmo vocabulário de efeitos que ataques já usam (buff/debuff/heal/etc). */
+function applyPassive(state, id, trigger){
+  const b = state.battle;
+  if(!id || b.hp[id]<=0) return;
+  const passive = liveChar(state, id).passive;
+  if(!passive || passive.trigger !== trigger) return;
+
+  if(trigger === "low_hp"){
+    if(!b.passiveFired) b.passiveFired = {};
+    const chave = id + "|" + (b.activeForm[id] || "base"); // transformar reseta o "já disparou"
+    if(b.passiveFired[chave]) return;
+    const abaixoDe = (passive.condition && passive.condition.below_pct) || 0;
+    const frac = b.hp[id] / maxLifeOf(state, id);
+    if(frac >= abaixoDe) return;
+    b.passiveFired[chave] = true;
+  }
+
+  b.log.unshift(`✨ ${charById(id).name} ativa a passiva: ${passive.name}.`);
+  applyEffects(state, id, id, {effects: passive.effects}, []);
+}
+
 function applyAction(state, attackerId, atkIdx, targets){
   const alvos = Array.isArray(targets) ? targets : (targets ? [targets] : []);
   const c = liveChar(state, attackerId);
@@ -4677,7 +4822,6 @@ function applyAction(state, attackerId, atkIdx, targets){
       if(atk.cooldown>0) b.cooldowns[attackerId][atkIdx]=atk.cooldown;
       if(atk.onceOnly) b.onceUsed[attackerId][atkIdx]=true;
       addCharge(state, attackerId, CHARGE_STEP);
-      pushFx(b, {attackerId, effects: [], kind:"transform_v2"});
       tickSelfRecoil(state, attackerId);
       tickTransformDuration(state, attackerId);
       return;
@@ -4735,6 +4879,8 @@ function applyAction(state, attackerId, atkIdx, targets){
           checkDeathPenalty(state, targetId, wasAlive);
           checkGrowOnHit(state, targetId, wasAlive);
           checkExplodeOnDeath(state, targetId, wasAlive);
+          applyPassive(state, targetId, "on_hit_taken");
+          applyPassive(state, targetId, "low_hp");
           fxEffects.push({targetId, kind:"hit", color:fxColor, shape:fxShape, value:dmg});
         }
         b.log.unshift(`${c.name} usou ${atk.name} em ${tgt.name}: ${total} de dano`
@@ -4760,6 +4906,7 @@ function applyAction(state, attackerId, atkIdx, targets){
     if(atk.cooldown>0) b.cooldowns[attackerId][atkIdx]=atk.cooldown;
     if(atk.onceOnly) b.onceUsed[attackerId][atkIdx]=true;
     addCharge(state, attackerId, CHARGE_STEP); // atacar sempre carrega, mesmo cost=0
+    applyPassive(state, attackerId, "on_attack");
   }
   pushFx(b, {attackerId, effects: fxEffects});
   b.stunned[attackerId]=false;

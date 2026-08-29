@@ -179,7 +179,10 @@ class Attack:
     max_dmg: Optional[int] = None
     only_below_hp: Optional[float] = None # só pode usar com vida abaixo dessa fração (0-1)
     scales_with_def: bool = False         # usa a DEFESA do personagem em vez do ataque
-    recoil_pct: Optional[float] = None    # % da vida do próprio atacante perdida ao usar
+    recoil_pct: Optional[float] = None    # fração do DANO CAUSADO que volta pro próprio atacante
+                                            # (não é % da vida dele -- é multiplicador sobre o dano
+                                            # que ele acabou de causar. 0.3 = recuo de 30% do dano feito)
+    description: Optional[str] = None     # texto livre pra UI/tooltip -- o motor de batalha não lê isto
 
 
 def heal_pct_atk(pct, target="self"):
@@ -187,6 +190,27 @@ def heal_pct_atk(pct, target="self"):
     recalculado no momento em que o ataque é usado, então reflete buffs e
     transformações em vigor naquela hora. Ex.: Manto Protetor do Naruto."""
     return {"kind": "healPctAtk", "target": target, "pct": pct}
+
+
+# ---------------------------------------------------------------------
+# PASSIVA -- opcional, tanto no personagem base quanto em cada Form
+# (transformação). Cada uma tem UM gatilho; pra mais de um efeito, ainda é
+# só uma Passive com vários itens em `effects`.
+# ---------------------------------------------------------------------
+@dataclass
+class Passive:
+    name: str
+    description: str = ""
+    trigger: str = "always"
+    # "always"       -- aplica os efeitos UMA VEZ, no início da batalha (buff permanente,
+    #                   sem contagem de turnos -- ex.: "+15% de defesa física o tempo todo")
+    # "turn_start"    -- aplica toda vez que É A VEZ deste personagem agir (antes de escolher o ataque)
+    # "on_attack"     -- aplica toda vez que ESTE personagem usa um ataque (acerte ou erre)
+    # "on_hit_taken"  -- aplica toda vez que ESTE personagem é atingido por um ataque
+    # "low_hp"        -- aplica UMA VEZ, na primeira vez que a vida cai abaixo de
+    #                   `condition.below_pct` (ex.: 0.3 = abaixo de 30%)
+    effects: list = field(default_factory=list)   # reaproveita buff()/debuff()/heal()/shield()/etc.
+    condition: Optional[dict] = None   # só usado por trigger="low_hp": {"below_pct": 0.3}
 
 
 # ---------------------------------------------------------------------
@@ -204,6 +228,17 @@ class Form:
     def_mag: int
     vel: int
     attacks: list        # até 4 objetos Attack -- SUBSTITUEM os ataques normais enquanto transformado
+
+    rank: Optional[str] = None   # "D"|"C"|"B"|"A"|"S"|"Z" -- se não informado, o build usa
+                                   # automaticamente 1 rank acima do rank BASE do personagem
+                                   # (limitado em "Z"). Transformação NUNCA fica sem rank.
+    sprite: Optional[dict] = None            # arte própria da forma (mesmo formato de Character.sprite);
+                                               # se omitido, usa a arte do personagem base
+    transition_sprite: Optional[dict] = None  # {"slug":"pasta"} -- um transition.png tocado
+                                               # UMA VEZ durante a animação de transformação.
+                                               # Opcional: sem isso, só a faixa com o nome aparece.
+    passive: Optional[Passive] = None   # independente da passiva do personagem base -- se a forma
+                                          # não definir uma, a passiva do personagem base continua valendo
 
 
 # ---------------------------------------------------------------------
@@ -234,6 +269,7 @@ class Character:
     rank: str = "D"    # "D" | "C" | "B" | "A" | "S" | "Z" -- D é o mais fraco, Z o mais forte
 
     forms: dict = field(default_factory=dict)   # {"chave": Form(...)} -- transformações deste personagem
+    passive: Optional[Passive] = None   # opcional -- ver classe Passive acima
 
     appearance: Optional[dict] = None  # {"skin":"#...", "hairColor":"#...", "hairStyle":"...", "outfit":"#...", "outfit2":"#..."}
     sprite: Optional[dict] = None      # {"slug":"nome-da-pasta", "states":["front","back",...], "facing":"right"|"left"} -- ver COMO-ADICIONAR-ARTE.md
@@ -474,7 +510,7 @@ CHARACTERS: list[Character] = [
                 Attack("Espada Divina Escanor", "physical", power=50, precision=95, description=""),
                 Attack("Lança Divina Escanor", "physical", power=65, precision=90, cost=1, ignore_def=0.2, max_dmg=0, description=""),
                 Attack("The Cruel Sun", "magic", power=60, precision=70, cost=3, target_type="mixed", frontline_count=3, backline_count=2, description=""),
-                Attack("Superaquecer", "magic", power=160, cost=5, ignore_frontline=True, only_below_hp=20, recoil_pct=500, description="")
+                Attack("Superaquecer", "magic", power=160, cost=5, ignore_frontline=True, only_below_hp=0.2, recoil_pct=0.5, description="")
             ],
         ),
         },

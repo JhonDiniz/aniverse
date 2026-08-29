@@ -28,10 +28,35 @@ em vez de virar um bug silencioso dentro da batalha.
 
 import json
 import sys
-from characters import CHARACTERS, Attack, Character, Form
+from characters import CHARACTERS, Attack, Character, Form, Passive
 
 RANKS = ("D", "C", "B", "A", "S", "Z")
 TARGET_TYPES = ("single", "all_frontline", "all_backline", "nearest_line_all", "mixed")
+PASSIVE_TRIGGERS = ("always", "turn_start", "on_attack", "on_hit_taken", "low_hp")
+
+
+def passive_to_js(p: Passive):
+    if p is None:
+        return None
+    obj = {"name": p.name, "description": p.description, "trigger": p.trigger, "effects": p.effects}
+    if p.condition is not None:
+        obj["condition"] = p.condition
+    return obj
+
+
+def validate_passive(owner_label: str, p: Passive):
+    errs = []
+    if p is None:
+        return errs
+    if p.trigger not in PASSIVE_TRIGGERS:
+        errs.append(f'"{owner_label}": passiva "{p.name}" tem trigger inválido "{p.trigger}" (use um de {PASSIVE_TRIGGERS})')
+    if p.trigger == "low_hp":
+        below = (p.condition or {}).get("below_pct")
+        if below is None:
+            errs.append(f'"{owner_label}": passiva "{p.name}" tem trigger="low_hp" mas falta condition={{"below_pct": 0.x}}')
+        elif not (0 < below < 1):
+            errs.append(f'"{owner_label}": passiva "{p.name}" tem condition.below_pct={below} fora do intervalo (0,1)')
+    return errs
 
 # Soma EXATA dos 5 atributos (vida, ataque, defesa física, defesa mágica,
 # velocidade) que cada rank exige. Isso é checado pra todo Character -- não
@@ -91,14 +116,24 @@ def attack_to_js(a: Attack | None):
     return obj
 
 
-def form_to_js(key: str, f: Form):
-    return {
+def form_to_js(key: str, f: Form, base_rank: str):
+    idx = RANKS.index(base_rank)
+    rank_auto = RANKS[min(idx + 1, len(RANKS) - 1)]   # 1 acima da base, sem passar de Z
+    obj = {
         "key": key,
         "name": f.name,
         "vida": f.hp, "atk": f.atk,
         "defFis": f.def_fis, "defMag": f.def_mag, "vel": f.vel,
         "attacks": [attack_to_js(a) for a in f.attacks],
+        "rank": f.rank if f.rank else rank_auto,
     }
+    if f.sprite is not None:
+        obj["sprite"] = {"slug": f.sprite["slug"], "states": f.sprite["states"], "facing": f.sprite.get("facing", "right")}
+    if f.transition_sprite is not None:
+        obj["transitionSprite"] = {"slug": f.transition_sprite["slug"]}
+    if f.passive is not None:
+        obj["passive"] = passive_to_js(f.passive)
+    return obj
 
 
 def validate_stats(name: str, rank: str, stats: dict):
@@ -134,6 +169,7 @@ def validate(c: Character, seen_names: set):
         errs.append(f'"{c.name}": rank inválido "{c.rank}" (use um de {RANKS})')
     else:
         errs += validate_stats(c.name, c.rank, {"hp": c.hp, "atk": c.atk, "defFis": c.def_fis, "defMag": c.def_mag, "vel": c.vel})
+    errs += validate_passive(c.name, c.passive)
     if not (2 <= len(c.attacks) <= 3):
         errs.append(f'"{c.name}": precisa ter 2 ou 3 ataques em `attacks` (tem {len(c.attacks)})')
 
@@ -145,6 +181,9 @@ def validate(c: Character, seen_names: set):
     for key, form in (c.forms or {}).items():
         if not (1 <= len(form.attacks) <= 4):
             errs.append(f'"{c.name}" forma "{key}": precisa ter de 1 a 4 ataques (tem {len(form.attacks)})')
+        if form.rank is not None and form.rank not in RANKS:
+            errs.append(f'"{c.name}" forma "{key}": rank inválido "{form.rank}" (use um de {RANKS}, ou deixe None pro automático)')
+        errs += validate_passive(f'{c.name} ({key})', form.passive)
         for a in form.attacks:
             errs += validate_attack(f'{c.name} ({key})', a)
     return errs
@@ -158,6 +197,19 @@ def validate_attack(owner_label: str, a: Attack):
         errs.append(f'"{owner_label}" / ataque "{a.name}": cost {a.cost} fora do intervalo 0-5')
     if a.target_type == "mixed" and not (a.frontline_count or a.backline_count):
         errs.append(f'"{owner_label}" / ataque "{a.name}": target_type="mixed" precisa de frontline_count e/ou backline_count')
+    if not (0 <= a.precision <= 100):
+        errs.append(f'"{owner_label}" / ataque "{a.name}": precision {a.precision} fora do intervalo 0-100 (é uma %, não fração)')
+    if a.only_below_hp is not None and not (0 < a.only_below_hp <= 1):
+        errs.append(f'"{owner_label}" / ataque "{a.name}": only_below_hp={a.only_below_hp} deveria ser uma FRAÇÃO entre 0 e 1 '
+                     f'(ex.: 0.2 = "abaixo de 20% de vida") -- valores como 20 ou 100 não fazem sentido nessa escala')
+    if a.ignore_def is not None and not (0 <= a.ignore_def <= 1):
+        errs.append(f'"{owner_label}" / ataque "{a.name}": ignore_def={a.ignore_def} deveria ser uma fração entre 0 e 1')
+    if a.crit is not None and not (0 <= a.crit <= 100):
+        errs.append(f'"{owner_label}" / ataque "{a.name}": crit={a.crit} deveria ser uma % entre 0 e 100')
+    if a.recoil_pct is not None and not (0 <= a.recoil_pct <= 3):
+        errs.append(f'"{owner_label}" / ataque "{a.name}": recoil_pct={a.recoil_pct} parece fora de escala -- '
+                     f'é um MULTIPLICADOR sobre o dano causado (0.3 = recuo de 30% do dano feito), não uma % solta. '
+                     f'Valores até 3 (recuo de 300% do dano) já são bem punitivos; acima disso, confira se não trocou a escala.')
     return errs
 
 
@@ -172,6 +224,7 @@ def build():
     fourth_attack = []
     rank_override = {}
     forms = {}         # nome do personagem -> {chave_da_forma: form_js}
+    passives = {}      # nome do personagem -> passiva serializada (só quem tem)
     art = {}
     animes_order = []
 
@@ -198,8 +251,10 @@ def build():
 
         if c.rank != "D":
             rank_override[c.name] = c.rank
+        if c.passive is not None:
+            passives[c.name] = passive_to_js(c.passive)
         if c.forms:
-            forms[c.name] = {key: form_to_js(key, f) for key, f in c.forms.items()}
+            forms[c.name] = {key: form_to_js(key, f, c.rank) for key, f in c.forms.items()}
         if c.sprite is not None:
             art[c.name] = {"slug": c.sprite["slug"], "states": c.sprite["states"], "facing": c.sprite.get("facing", "right")}
 
@@ -225,6 +280,7 @@ def build():
         js_const("FOURTH_ATTACK", fourth_attack),
         js_const("RANK_OVERRIDE", rank_override),
         js_const("CHAR_FORMS", forms),
+        js_const("PASSIVES", passives),
         js_const("ART", art),
         "",
     ]

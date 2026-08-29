@@ -1,5 +1,5 @@
-// ARQUIVO GERADO AUTOMATICAMENTE pelo Editor de Personagens -- não edite na mão.
-// Fonte: characters.py. Pra mudar personagens, use o editor e exporte de novo.
+// ARQUIVO GERADO AUTOMATICAMENTE por build_characters.py -- não edite na mão.
+// Fonte: characters.py. Pra mudar personagens, edite lá e rode o script de novo.
 
 const ANIMES = [
   "Dragon Ball",
@@ -1253,8 +1253,7 @@ const CHAR_KIT = [
         "onceOnly": false,
         "precision": 95,
         "cost": 0,
-        "targetType": "single",
-        "description": ""
+        "targetType": "single"
       },
       {
         "name": "Machado Divino Rhitta",
@@ -1281,8 +1280,7 @@ const CHAR_KIT = [
         "onceOnly": false,
         "precision": 90,
         "cost": 1,
-        "targetType": "single",
-        "description": ""
+        "targetType": "single"
       },
       {
         "name": "Sol Cruel",
@@ -1312,7 +1310,6 @@ const CHAR_KIT = [
         "targetType": "mixed",
         "frontlineCount": 1,
         "backlineCount": 1,
-        "description": "",
         "ignoreFrontline": true
       }
     ]
@@ -1753,8 +1750,7 @@ const FOURTH_ATTACK = [
     "precision": 100,
     "cost": 0,
     "targetType": "single",
-    "transformsInto": "transform_15",
-    "description": ""
+    "transformsInto": "transform_15"
   }
 ];
 const RANK_OVERRIDE = {
@@ -1886,7 +1882,8 @@ const CHAR_FORMS = {
           "frontlineCount": 1,
           "backlineCount": 2
         }
-      ]
+      ],
+      "rank": "A"
     }
   },
   "Escanor": {
@@ -1910,8 +1907,7 @@ const CHAR_FORMS = {
           "onceOnly": false,
           "precision": 95,
           "cost": 0,
-          "targetType": "single",
-          "description": ""
+          "targetType": "single"
         },
         {
           "name": "Lança Divina Escanor",
@@ -1926,8 +1922,7 @@ const CHAR_FORMS = {
           "cost": 1,
           "targetType": "single",
           "ignoreDef": 0.2,
-          "maxDmg": 0,
-          "description": ""
+          "maxDmg": 0
         },
         {
           "name": "The Cruel Sun",
@@ -1942,8 +1937,7 @@ const CHAR_FORMS = {
           "cost": 3,
           "targetType": "mixed",
           "frontlineCount": 3,
-          "backlineCount": 2,
-          "description": ""
+          "backlineCount": 2
         },
         {
           "name": "Superaquecer",
@@ -1957,15 +1951,16 @@ const CHAR_FORMS = {
           "precision": 100,
           "cost": 5,
           "targetType": "single",
-          "onlyBelowHp": 20,
-          "recoilPct": 500,
-          "description": "",
+          "onlyBelowHp": 0.2,
+          "recoilPct": 0.5,
           "ignoreFrontline": true
         }
-      ]
+      ],
+      "rank": "Z"
     }
   }
 };
+const PASSIVES = {};
 const ART = {
   "Naruto Shippuden": {
     "slug": "naruto-shippuden",
