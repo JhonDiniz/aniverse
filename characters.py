@@ -484,6 +484,7 @@ CHARACTERS: list[Character] = [
                 Attack("Onda de Choque", "magic", power=70, precision=70, cost=3, target_type="nearest_line_all", effects=[heal(25)]),
                 Attack("Mini Bijuudama", "magic", power=110, precision=60, cost=5, target_type="mixed", frontline_count=1, backline_count=2, effects=[heal(25)])
             ],
+            sprite=dict(slug="naruto-shippuden-manto-4-caudas", states=["base"]),
         ),
         },
         sprite=dict(slug="naruto-shippuden", states=["base", "dash", "block"], facing="left"),

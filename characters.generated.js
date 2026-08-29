@@ -1,5 +1,5 @@
-// ARQUIVO GERADO AUTOMATICAMENTE por build_characters.py -- não edite na mão.
-// Fonte: characters.py. Pra mudar personagens, edite lá e rode o script de novo.
+// ARQUIVO GERADO AUTOMATICAMENTE pelo Editor de Personagens -- não edite na mão.
+// Fonte: characters.py. Pra mudar personagens, use o editor e exporte de novo.
 
 const ANIMES = [
   "Dragon Ball",
@@ -1253,7 +1253,8 @@ const CHAR_KIT = [
         "onceOnly": false,
         "precision": 95,
         "cost": 0,
-        "targetType": "single"
+        "targetType": "single",
+        "description": ""
       },
       {
         "name": "Machado Divino Rhitta",
@@ -1280,7 +1281,8 @@ const CHAR_KIT = [
         "onceOnly": false,
         "precision": 90,
         "cost": 1,
-        "targetType": "single"
+        "targetType": "single",
+        "description": ""
       },
       {
         "name": "Sol Cruel",
@@ -1310,6 +1312,7 @@ const CHAR_KIT = [
         "targetType": "mixed",
         "frontlineCount": 1,
         "backlineCount": 1,
+        "description": "",
         "ignoreFrontline": true
       }
     ]
@@ -1750,7 +1753,8 @@ const FOURTH_ATTACK = [
     "precision": 100,
     "cost": 0,
     "targetType": "single",
-    "transformsInto": "transform_15"
+    "transformsInto": "transform_15",
+    "description": ""
   }
 ];
 const RANK_OVERRIDE = {
@@ -1883,7 +1887,14 @@ const CHAR_FORMS = {
           "backlineCount": 2
         }
       ],
-      "rank": "A"
+      "rank": "A",
+      "sprite": {
+        "slug": "naruto-shippuden-manto-4-caudas",
+        "states": [
+          "base"
+        ],
+        "facing": "right"
+      }
     }
   },
   "Escanor": {
@@ -1907,7 +1918,8 @@ const CHAR_FORMS = {
           "onceOnly": false,
           "precision": 95,
           "cost": 0,
-          "targetType": "single"
+          "targetType": "single",
+          "description": ""
         },
         {
           "name": "Lança Divina Escanor",
@@ -1922,7 +1934,8 @@ const CHAR_FORMS = {
           "cost": 1,
           "targetType": "single",
           "ignoreDef": 0.2,
-          "maxDmg": 0
+          "maxDmg": 0,
+          "description": ""
         },
         {
           "name": "The Cruel Sun",
@@ -1937,7 +1950,8 @@ const CHAR_FORMS = {
           "cost": 3,
           "targetType": "mixed",
           "frontlineCount": 3,
-          "backlineCount": 2
+          "backlineCount": 2,
+          "description": ""
         },
         {
           "name": "Superaquecer",
@@ -1953,6 +1967,7 @@ const CHAR_FORMS = {
           "targetType": "single",
           "onlyBelowHp": 0.2,
           "recoilPct": 0.5,
+          "description": "",
           "ignoreFrontline": true
         }
       ],
